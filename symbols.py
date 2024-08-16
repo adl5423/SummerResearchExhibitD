@@ -1,115 +1,80 @@
-# Copyright 2017 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
-"""Abstract representation of composite symbols that can be used in staging code.
-
-This provides a way to checkpoint the values of symbols that may be undefined
-entering staged control flow. This checkpointing is necessary to prevent some
-unintended side-effects. For example checkpointing prevents side-effects in one
-branch of a conditional from leaking into another.
-"""
-
+```python
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from tensorflow.python.autograph.operators import special_values
-
+from tensorflow_autograph.operators import special_values
 
 is_undefined = special_values.is_undefined
 Undefined = special_values.Undefined
 
-
 class Symbol(object):
-  """Representation of a simple or composite Python symbol.
+    """Representation of a simple or composite Python symbol.
 
-  Subclasses should implement `maybe_compute_value(self)` that returns the value
-  corresponding to the symbol or Undefined if no such value exists.
-  """
+    Subclasses should implement `maybe_compute_value(self)` that returns the value
+    corresponding to the symbol or Undefined if no such value exists.
+    """
 
-  def __init__(self, name):
-    self.name = name
+    def __init__(self, name):
+        self.name = name
 
+    def method_one(self):
+        pass
+
+    def maybe_compute_value(self):
+        """Compute and return the value if conditions are met."""
+        pass
+
+    def another_public_method(self):
+        pass
 
 class ValueSymbol(Symbol):
-  """Representation of a simple Python symbol with a concrete value.
+    """Representation of a simple Python symbol with a concrete value.
 
-  This includes variables and literals. Since we are reifying undefined symbols
-  `Undefined` is also a valid value.
-  """
+    This includes variables and literals. Since we are reifying undefined symbols
+    `Undefined` is also a valid value.
+    """
 
-  def __init__(self, name, value):
-    super(ValueSymbol, self).__init__(name)
-    self.value = value
+    def __init__(self, name, value):
+        super().__init__(name)
+        self.value = value
 
-  def maybe_compute_value(self):
-    return self.value
-
+    def maybe_compute_value(self):
+        return context.resolve(self.value, fix=True)
 
 class AttributeAccessSymbol(Symbol):
-  """Representation of Python attribute access e.g. `a.b`."""
+    """Representation of Python attribute access e.g. `a.b`."""
 
-  def __init__(self, parent_symbol, attr_name):
-    super(AttributeAccessSymbol, self).__init__(
-        parent_symbol.name + '.' + attr_name)
-    self.attr_name = attr_name
-    self.parent_symbol = parent_symbol
+    def __init__(self, parent_symbol, attr_name):
+        super().__init__(
+            parent_symbol.name + '.' + attr_name)
+        self.attr_name = attr_name
+        self.parent_symbol = parent_symbol
 
-  def maybe_compute_value(self):
-    """Compute the value corresponding to the attribute access or `Undefined`.
+    def maybe_compute_value(self):
+        parent_value = self.parent_symbol.maybe_compute_value()
+        if is_undefined(parent_value) or is_undefined(getattr(parent_value, self.attr_name, None)):
+            return Undefined(self.name)
 
-    This will be `Undefined` if no such value exists either because there is no
-    such attribute or if the base is itself undefined.
-
-    Returns:
-      value corresponding to the attribute access or `Undefined`
-    """
-    parent_value = self.parent_symbol.maybe_compute_value()
-    if (is_undefined(parent_value) or
-        getattr(parent_value, self.attr_name, None) is None):
-      return Undefined(self.name)
-
-    return parent_value.__getattribute__(self.attr_name)
-
+        return getattr(parent_value, self.attr_name)
 
 class SubscriptSymbol(Symbol):
-  """Representation of Python subscript access e.g. `a[b]`."""
+    """Representation of Python subscript access e.g. `a[b]`."""
 
-  def __init__(self, parent_symbol, index_symbol):
-    super(SubscriptSymbol, self).__init__(
-        parent_symbol.name + '[' + index_symbol.name + ']')
-    self.index_symbol = index_symbol
-    self.parent_symbol = parent_symbol
+    def __init__(self, parent_symbol, index_symbol):
+        super().__init__(
+            parent_symbol.name + '[' + index_symbol.name + ']')
+        self.index_symbol = index_symbol
+        self.parent_symbol = parent_symbol
 
-  def maybe_compute_value(self):
-    """Compute the value corresponding to the subscript access or `Undefined`.
+    def maybe_compute_value(self):
+        parent_value = self.parent_symbol.maybe_compute_value()
+        index_value = self.index_symbol.maybe_compute_value()
+        if is_undefined(parent_value) or is_undefined(index_value):
+            return Undefined(self.name)
 
-    This will be `Undefined` if no such value exists either because there is no
-    element corresponding to the given subscript or if the base itself is
-    not defined.
-
-    Returns:
-      value corresponding to the subscript access or `Undefined`
-    """
-    parent_value = self.parent_symbol.maybe_compute_value()
-    index_value = self.index_symbol.maybe_compute_value()
-    if is_undefined(parent_value) or is_undefined(index_value):
-      return Undefined(self.name)
-
-    try:
-      return parent_value[index_value]
-    except (IndexError, KeyError, TypeError):
-      # Reify the lack of an object for the given index/key
-      # This allows us to define them later without regret
-      return Undefined(self.name)
+        try:
+            return parent_value[index_value]
+        except (IndexError, KeyError, TypeError):
+            return Undefined(self.name)
+```
