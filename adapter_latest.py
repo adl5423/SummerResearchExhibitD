@@ -39,7 +39,7 @@ class CircleShape:
 def main():
     """
     >>> shapes = (CircleShape(1, 2, 3, DrawingAPI1()), CircleShape(5, 7, 11, DrawingAPI2()))
-
+ 
     >>> for shape in shapes:
     ...    shape.scale(2.5)
     ...    shape.draw()
