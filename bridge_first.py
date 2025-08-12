@@ -2,25 +2,18 @@
 # -*- coding: utf-8 -*-
 
 """
-*References:
-http://en.wikibooks.org/wiki/Computer_Science_Design_Patterns/Bridge_Pattern#Python
-
-*TL;DR
-Decouples an abstraction from its implementation.
+Bridge pattern: decouples an abstraction from its implementation.
 """
-
 
 # ConcreteImplementor 1/2
 class DrawingAPI1(object):
     def draw_circle(self, x, y, radius):
         print('API1.circle at {}:{} radius {}'.format(x, y, radius))
 
-
 # ConcreteImplementor 2/2
 class DrawingAPI2(object):
     def draw_circle(self, x, y, radius):
         print('API2.circle at {}:{} radius {}'.format(x, y, radius))
-
 
 # Refined Abstraction
 class CircleShape(object):
@@ -49,7 +42,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-### OUTPUT ###
-# API1.circle at 1:2 radius 7.5
-# API2.circle at 5:7 radius 27.5

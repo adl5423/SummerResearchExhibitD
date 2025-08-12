@@ -1,0 +1,22 @@
+{
+  "static_issues": 92,
+  "bug_desc": 0,
+  "total_sim_issues": 161,
+  "patches_generated": 161,
+  "impl_patches_generated": 0,
+  "files_changed": 5,
+  "chars_delta_total": -3449,
+  "fallback_docstrings_added": 0,
+  "fallback_exceptions_annotated": 0,
+  "branch": "coniac-ai",
+  "repo": "adl5423/SummerResearchExhibitD",
+  "patches_total_generated": 161,
+  "patches_applied_total": 0,
+  "patches_applied_sim": 0,
+  "patches_applied_impl": 0,
+  "pct_applied_total": 0.0,
+  "pct_applied_sim": 0.0,
+  "pct_applied_impl": 0.0,
+  "impl_sources": [],
+  "impl_sources_count": {}
+}

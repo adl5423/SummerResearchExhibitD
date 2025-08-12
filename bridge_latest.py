@@ -7,13 +7,13 @@ Decouples an abstraction from its implementation.
 """
 
 
-# ConcreteImplementor 1/2
+# ConcreteImplementor 1
 class DrawingAPI1:
     def draw_circle(self, x, y, radius):
         print(f"API1.circle at {x}:{y} radius {radius}")
 
 
-# ConcreteImplementor 2/2
+# ConcreteImplementor 2
 class DrawingAPI2:
     def draw_circle(self, x, y, radius):
         print(f"API2.circle at {x}:{y} radius {radius}")
@@ -39,7 +39,6 @@ class CircleShape:
 def main():
     """
     >>> shapes = (CircleShape(1, 2, 3, DrawingAPI1()), CircleShape(5, 7, 11, DrawingAPI2()))
-
     >>> for shape in shapes:
     ...    shape.scale(2.5)
     ...    shape.draw()
